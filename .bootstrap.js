@@ -77,14 +77,7 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [
-    "bun install react-zoom-pan-pinch",
-    "bun add react-zoom-pan-pinch@^3.4.4",
-    "bun add react-dropzone@^14.3.5",
-    "bun add @clerk/clerk-react@^5.0.0",
-    "bun add unique-names-generator@^4.7.1",
-    "bun add cloudinary-build-url@^0.2.4"
-];
+    const commands = [];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
