@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Plus } from 'lucide-react';
@@ -16,12 +16,11 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
   const activePinIndex = useReviewStore(s => s.activePinIndex);
   const setActivePinIndex = useReviewStore(s => s.setActivePinIndex);
   const setSelectedPinId = useReviewStore(s => s.setSelectedPinId);
-  const pins = session?.pins ?? [];
+  const isAutoScrolling = useReviewStore(s => s.isAutoScrolling);
+  const pins = useMemo(() => session?.pins ?? [], [session?.pins]);
   const centerOnPin = useCallback((pin: Pin, index: number) => {
     if (!transformComponentRef.current) return;
     const { setTransform } = transformComponentRef.current;
-    // Calculate transform to center the pin (pin coordinates are 0-100%)
-    // We target a specific scale and then adjust x/y to center the percentage point
     const zoomLevel = 2.5;
     const wrapper = transformComponentRef.current.instance.wrapperComponent;
     if (!wrapper) return;
@@ -32,14 +31,13 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
     setActivePinIndex(index);
     setSelectedPinId(pin.id);
   }, [setActivePinIndex, setSelectedPinId]);
-  // Sync zoom when activePinIndex changes externally
   useEffect(() => {
     if (activePinIndex !== null && pins[activePinIndex]) {
       centerOnPin(pins[activePinIndex], activePinIndex);
     }
   }, [activePinIndex, pins, centerOnPin]);
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (mode !== 'setup') return;
+    if (mode !== 'setup' || isAutoScrolling) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -62,13 +60,17 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
         minScale={0.2}
         maxScale={8}
         centerOnInit
+        disabled={isAutoScrolling}
       >
-        <TransformComponent 
-          wrapperClass="!w-full !h-full" 
+        <TransformComponent
+          wrapperClass="!w-full !h-full"
           contentClass="!w-full !h-full flex items-center justify-center"
         >
           <div
-            className="relative cursor-crosshair group flex items-center justify-center"
+            className={cn(
+              "relative group flex items-center justify-center",
+              mode === 'setup' ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"
+            )}
             onClick={handleCanvasClick}
             style={{ width: '100%', height: '100%' }}
           >
@@ -77,7 +79,6 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
               alt="Review Document"
               className="max-w-full max-h-full object-contain pointer-events-none select-none shadow-2xl"
             />
-            {/* Pins Overlay */}
             <div className="absolute inset-0 pointer-events-none">
               <AnimatePresence>
                 {pins.map((pin, idx) => (
@@ -85,12 +86,13 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
                     key={pin.id}
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{
-                      scale: 1,
+                      scale: activePinIndex === idx ? 1.25 : 1,
                       opacity: 1,
                       left: `${pin.x}%`,
                       top: `${pin.y}%`
                     }}
                     exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     className={cn(
                       "absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer",
                       activePinIndex === idx ? "z-20" : "z-10"
@@ -103,15 +105,23 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
                     <div className={cn(
                       "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300",
                       activePinIndex === idx
-                        ? "bg-indigo-600 border-white scale-125 shadow-glow shadow-indigo-500/50"
+                        ? "bg-indigo-600 border-white shadow-glow shadow-indigo-500/50"
                         : "bg-white border-indigo-600 hover:scale-110 shadow-sm"
                     )}>
+                      {activePinIndex === idx && (
+                        <motion.div
+                          layoutId="pulse"
+                          className="absolute inset-0 rounded-full bg-indigo-400 opacity-20"
+                          animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                        />
+                      )}
                       {mode === 'setup' ? (
-                        <span className={cn("text-[10px] font-bold", activePinIndex === idx ? "text-white" : "text-indigo-600")}>
+                        <span className={cn("text-[10px] font-bold relative z-10", activePinIndex === idx ? "text-white" : "text-indigo-600")}>
                           {idx + 1}
                         </span>
                       ) : (
-                        <MapPin className={cn("w-4 h-4", activePinIndex === idx ? "text-white" : "text-indigo-600")} />
+                        <MapPin className={cn("w-4 h-4 relative z-10", activePinIndex === idx ? "text-white" : "text-indigo-600")} />
                       )}
                     </div>
                   </motion.div>

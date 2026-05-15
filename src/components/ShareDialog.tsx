@@ -8,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import { generateCodename } from '@/lib/codename';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 interface ShareDialogProps {
   sessionId: string;
   currentCodename?: string;
@@ -38,8 +37,7 @@ export function ShareDialog({ sessionId, currentCodename, isOpen, onOpenChange, 
     }
   };
   const copyToClipboard = () => {
-    const baseUrl = `${window.location.origin}/review/${sessionId}`;
-    const url = codename ? `${baseUrl}?ref=${codename}` : baseUrl;
+    const url = `${window.location.origin}/review/${sessionId}${codename ? `?ref=${codename}` : ''}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -63,9 +61,9 @@ export function ShareDialog({ sessionId, currentCodename, isOpen, onOpenChange, 
               <Label>Anonymous Mode</Label>
               <p className="text-xs text-zinc-500">Enable codenames for reviewers</p>
             </div>
-            <Switch
-              checked={!!codename}
-              onCheckedChange={(checked) => !checked ? setCodename("") : handleGenerate()}
+            <Switch 
+              checked={!!codename} 
+              onCheckedChange={(checked) => !checked ? setCodename("") : handleGenerate()} 
             />
           </div>
           {codename && (
@@ -78,9 +76,9 @@ export function ShareDialog({ sessionId, currentCodename, isOpen, onOpenChange, 
                   readOnly
                   className="bg-zinc-800 border-zinc-700 font-mono text-indigo-400"
                 />
-                <Button
-                  variant="outline"
-                  size="icon"
+                <Button 
+                  variant="outline" 
+                  size="icon" 
                   onClick={handleGenerate}
                   disabled={isUpdating}
                   className="border-zinc-700 hover:bg-zinc-800"
@@ -94,11 +92,11 @@ export function ShareDialog({ sessionId, currentCodename, isOpen, onOpenChange, 
             <Label>Sharing Link</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={codename ? `.../review/${sessionId}?ref=${codename}` : `.../review/${sessionId}`}
+                value={`${window.location.origin.replace(/^https?:\/\//, '')}/review/${sessionId}`}
                 readOnly
                 className="bg-zinc-800 border-zinc-700 text-xs text-zinc-400"
               />
-              <Button
+              <Button 
                 onClick={copyToClipboard}
                 className="bg-indigo-600 hover:bg-indigo-500 shrink-0"
               >

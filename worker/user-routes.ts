@@ -28,6 +28,23 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     });
     return ok(c, session);
   });
+  app.patch('/api/sessions/:id', async (c) => {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const session = new DocumentSessionEntity(c.env, id);
+    if (!await session.exists()) return notFound(c, 'Session not found');
+    const updated = await session.mutate(s => ({
+      ...s,
+      ...body
+    }));
+    return ok(c, updated);
+  });
+  app.delete('/api/sessions/:id', async (c) => {
+    const id = c.req.param('id');
+    const success = await DocumentSessionEntity.delete(c.env, id);
+    return ok(c, { success });
+  });
+  // PINS & FEEDBACK
   app.post('/api/sessions/:id/pins', async (c) => {
     const sessionId = c.req.param('id');
     const pinData = await c.req.json() as Pin;

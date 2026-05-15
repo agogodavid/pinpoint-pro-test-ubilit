@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, MoreHorizontal, LayoutList, X } from 'lucide-react';
+import { ArrowLeft, Share2, MoreHorizontal, LayoutList, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ReviewCanvas } from '@/components/ReviewCanvas';
 import { GuidedController } from '@/components/GuidedController';
 import { PinFeedbackPopover } from '@/components/PinFeedbackPopover';
+import { ShareDialog } from '@/components/ShareDialog';
 import { useReviewStore } from '@/hooks/use-review-store';
 import { api } from '@/lib/api-client';
 import type { DocumentSession, Pin } from '@shared/types';
@@ -15,6 +17,7 @@ export function ReviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const session = useReviewStore(s => s.session);
   const setSession = useReviewStore(s => s.setSession);
   const addPinToStore = useReviewStore(s => s.addPin);
@@ -50,6 +53,11 @@ export function ReviewPage() {
       toast.error("Failed to save pin");
     }
   };
+  const handleCodenameUpdate = (newCodename: string) => {
+    if (session) {
+      setSession({ ...session, codename: newCodename });
+    }
+  };
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-zinc-950">
@@ -59,7 +67,6 @@ export function ReviewPage() {
   }
   return (
     <AppLayout container={false} className="h-screen bg-zinc-950 overflow-hidden">
-      {/* Header Bar */}
       <header className="h-16 flex items-center justify-between px-6 bg-zinc-900/50 border-b border-zinc-800 z-50">
         <div className="flex items-center gap-4">
           <Button
@@ -71,9 +78,16 @@ export function ReviewPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="h-4 w-px bg-zinc-800" />
-          <h1 className="text-sm font-semibold text-zinc-100 max-w-[200px] truncate">
-            {session?.title || "Untitled Review"}
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="text-sm font-semibold text-zinc-100 max-w-[200px] truncate leading-tight">
+              {session?.title || "Untitled Review"}
+            </h1>
+            {session?.codename && (
+              <span className="text-[10px] text-indigo-400 font-mono tracking-tighter uppercase">
+                Ref: {session.codename}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Sheet>
@@ -93,8 +107,8 @@ export function ReviewPage() {
                     key={p.id}
                     onClick={() => setActivePinIndex(idx)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                      activePinIndex === idx 
-                        ? 'bg-indigo-600/10 border-indigo-500 shadow-glow shadow-indigo-500/20' 
+                      activePinIndex === idx
+                        ? 'bg-indigo-600/10 border-indigo-500 shadow-glow'
                         : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
                     }`}
                   >
@@ -108,16 +122,28 @@ export function ReviewPage() {
               </div>
             </SheetContent>
           </Sheet>
-          <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white gap-2">
+          <Button 
+            onClick={() => setIsShareOpen(true)}
+            variant="ghost" size="sm" className="text-zinc-400 hover:text-white gap-2"
+          >
             <Share2 className="w-4 h-4" />
             Share
           </Button>
-          <Button variant="ghost" size="icon" className="text-zinc-400">
-            <MoreHorizontal className="w-5 h-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-zinc-400">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-100">
+              <DropdownMenuItem className="gap-2 focus:bg-zinc-800 focus:text-indigo-400">
+                <Settings className="w-4 h-4" />
+                Session Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
-      {/* Main Content Area */}
       <div className="relative flex h-[calc(100vh-64px)] w-full overflow-hidden">
         <main className="relative flex-1 p-6 flex flex-col items-center justify-center">
           {session && (
@@ -128,9 +154,8 @@ export function ReviewPage() {
           )}
           <GuidedController />
         </main>
-        {/* Selected Pin Side Panel */}
         {selectedPinId && (
-          <aside className="w-[350px] bg-zinc-900/50 border-l border-zinc-800 flex flex-col relative z-40">
+          <aside className="w-[350px] bg-zinc-900/50 border-l border-zinc-800 flex flex-col relative z-40 animate-slide-left">
             <Button
               variant="ghost"
               size="icon"
@@ -143,6 +168,15 @@ export function ReviewPage() {
           </aside>
         )}
       </div>
+      {id && (
+        <ShareDialog 
+          isOpen={isShareOpen} 
+          onOpenChange={setIsShareOpen}
+          sessionId={id}
+          currentCodename={session?.codename}
+          onUpdate={handleCodenameUpdate}
+        />
+      )}
     </AppLayout>
   );
 }
