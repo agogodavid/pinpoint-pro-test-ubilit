@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, MoreHorizontal, LayoutList, X, Settings } from 'lucide-react';
+import { ArrowLeft, Share2, MoreHorizontal, LayoutList, X, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -18,6 +18,7 @@ export function ReviewPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  // Strictly primitive selectors
   const session = useReviewStore(s => s.session);
   const setSession = useReviewStore(s => s.setSession);
   const addPinToStore = useReviewStore(s => s.addPin);
@@ -25,6 +26,12 @@ export function ReviewPage() {
   const setSelectedPinId = useReviewStore(s => s.setSelectedPinId);
   const activePinIndex = useReviewStore(s => s.activePinIndex);
   const setActivePinIndex = useReviewStore(s => s.setActivePinIndex);
+  const totalReactions = useMemo(() => {
+    if (!session) return 0;
+    return session.pins.reduce((sum, pin) => {
+      return sum + Object.values(pin.reactions).reduce((a, b) => a + b, 0);
+    }, 0);
+  }, [session]);
   useEffect(() => {
     async function loadSession() {
       if (!id) return;
@@ -67,7 +74,7 @@ export function ReviewPage() {
   }
   return (
     <AppLayout container={false} className="h-screen bg-zinc-950 overflow-hidden">
-      <header className="h-16 flex items-center justify-between px-6 bg-zinc-900/50 border-b border-zinc-800 z-50">
+      <header className="h-16 flex items-center justify-between px-6 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 z-50">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -79,12 +86,20 @@ export function ReviewPage() {
           </Button>
           <div className="h-4 w-px bg-zinc-800" />
           <div className="flex flex-col">
-            <h1 className="text-sm font-semibold text-zinc-100 max-w-[200px] truncate leading-tight">
-              {session?.title || "Untitled Review"}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold text-zinc-100 max-w-[200px] truncate leading-tight">
+                {session?.title || "Untitled Review"}
+              </h1>
+              {totalReactions > 0 && (
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] text-indigo-400">
+                  <Heart className="w-2.5 h-2.5 fill-current" />
+                  {totalReactions}
+                </div>
+              )}
+            </div>
             {session?.codename && (
-              <span className="text-[10px] text-indigo-400 font-mono tracking-tighter uppercase">
-                Ref: {session.codename}
+              <span className="text-[10px] text-zinc-500 font-mono tracking-tighter uppercase">
+                Reference: <span className="text-indigo-400">{session.codename}</span>
               </span>
             )}
           </div>
@@ -94,10 +109,10 @@ export function ReviewPage() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white gap-2">
                 <LayoutList className="w-4 h-4" />
-                Index
+                <span className="hidden sm:inline">Index</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[350px] bg-zinc-950 border-zinc-800 p-0">
+            <SheetContent side="right" className="w-[350px] bg-zinc-950 border-zinc-800 p-0 shadow-2xl">
               <SheetHeader className="p-6 border-b border-zinc-800">
                 <SheetTitle className="text-zinc-100">Review Summary</SheetTitle>
               </SheetHeader>
@@ -108,13 +123,13 @@ export function ReviewPage() {
                     onClick={() => setActivePinIndex(idx)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       activePinIndex === idx
-                        ? 'bg-indigo-600/10 border-indigo-500 shadow-glow'
+                        ? 'bg-indigo-600/10 border-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.1)]'
                         : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Pin #{idx + 1}</span>
-                      <span className="text-[10px] text-zinc-500">{p.comments.length} comments</span>
+                      <span className="text-[10px] text-zinc-500 font-mono">{p.comments.length} comments</span>
                     </div>
                     <p className="text-xs text-zinc-300 line-clamp-1">{p.prompt || "No prompt description available."}</p>
                   </div>
@@ -122,12 +137,12 @@ export function ReviewPage() {
               </div>
             </SheetContent>
           </Sheet>
-          <Button 
+          <Button
             onClick={() => setIsShareOpen(true)}
             variant="ghost" size="sm" className="text-zinc-400 hover:text-white gap-2"
           >
             <Share2 className="w-4 h-4" />
-            Share
+            <span className="hidden sm:inline">Share</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -136,7 +151,7 @@ export function ReviewPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-100">
-              <DropdownMenuItem className="gap-2 focus:bg-zinc-800 focus:text-indigo-400">
+              <DropdownMenuItem className="gap-2 focus:bg-zinc-800 focus:text-indigo-400 cursor-pointer">
                 <Settings className="w-4 h-4" />
                 Session Settings
               </DropdownMenuItem>
@@ -145,7 +160,7 @@ export function ReviewPage() {
         </div>
       </header>
       <div className="relative flex h-[calc(100vh-64px)] w-full overflow-hidden">
-        <main className="relative flex-1 p-6 flex flex-col items-center justify-center">
+        <main className="relative flex-1 p-4 sm:p-6 flex flex-col items-center justify-center">
           {session && (
             <ReviewCanvas
               documentUrl={session.documentUrl}
@@ -155,11 +170,11 @@ export function ReviewPage() {
           <GuidedController />
         </main>
         {selectedPinId && (
-          <aside className="w-[350px] bg-zinc-900/50 border-l border-zinc-800 flex flex-col relative z-40 animate-slide-left">
+          <aside className="fixed inset-y-0 right-0 sm:relative w-full sm:w-[350px] bg-zinc-900/80 backdrop-blur-2xl border-l border-zinc-800 flex flex-col z-[60] sm:z-40 animate-in slide-in-from-right duration-300">
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 text-zinc-500 hover:text-white z-50"
+              className="absolute top-2 right-2 h-8 w-8 text-zinc-500 hover:text-white z-50 rounded-full hover:bg-zinc-800"
               onClick={() => setSelectedPinId(null)}
             >
               <X className="w-4 h-4" />
@@ -169,8 +184,8 @@ export function ReviewPage() {
         )}
       </div>
       {id && (
-        <ShareDialog 
-          isOpen={isShareOpen} 
+        <ShareDialog
+          isOpen={isShareOpen}
           onOpenChange={setIsShareOpen}
           sessionId={id}
           currentCodename={session?.codename}

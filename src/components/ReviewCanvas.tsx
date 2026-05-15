@@ -14,6 +14,8 @@ interface ReviewCanvasProps {
 export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
   const transformComponentRef = useRef<ReactZoomPanPinchRef>(null);
   const [hoveredPin, setHoveredPin] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0, pctX: 0, pctY: 0 });
+  // Strictly primitive selectors
   const mode = useReviewStore(s => s.mode);
   const session = useReviewStore(s => s.session);
   const setSession = useReviewStore(s => s.setSession);
@@ -40,6 +42,13 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
       centerOnPin(pins[activePinIndex], activePinIndex);
     }
   }, [activePinIndex, pins, centerOnPin]);
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (mode !== 'setup') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pctX = ((e.clientX - rect.left) / rect.width) * 100;
+    const pctY = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x: e.clientX, y: e.clientY, pctX, pctY });
+  };
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (mode !== 'setup' || isAutoScrolling) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -92,6 +101,7 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
               "relative group flex items-center justify-center",
               mode === 'setup' ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"
             )}
+            onMouseMove={handleCanvasMouseMove}
             onClick={handleCanvasClick}
             style={{ width: '100%', height: '100%' }}
           >
@@ -147,7 +157,6 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
                         <MapPin className={cn("w-4 h-4 relative z-10", activePinIndex === idx ? "text-white" : "text-indigo-600")} />
                       )}
                     </div>
-                    {/* Delete button for setup mode */}
                     <AnimatePresence>
                       {mode === 'setup' && (hoveredPin === pin.id || activePinIndex === idx) && (
                         <motion.button
@@ -168,12 +177,27 @@ export function ReviewCanvas({ documentUrl, onPinAdd }: ReviewCanvasProps) {
           </div>
         </TransformComponent>
       </TransformWrapper>
-      {mode === 'setup' && (
-        <div className="absolute top-4 left-4 bg-zinc-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-zinc-700 text-xs text-zinc-300 flex items-center gap-2 shadow-2xl">
-          <Plus className="w-3 h-3 text-indigo-400" />
-          Click anywhere to drop a pin
-        </div>
-      )}
+      <AnimatePresence>
+        {mode === 'setup' && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-4 left-4 bg-zinc-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-zinc-700 text-xs text-zinc-300 flex items-center gap-2 shadow-2xl z-10"
+            >
+              <Plus className="w-3 h-3 text-indigo-400" />
+              Click to drop a pin
+            </motion.div>
+            <motion.div
+              className="fixed pointer-events-none z-[100] px-2 py-1 bg-indigo-600/90 text-white text-[10px] font-mono rounded shadow-xl"
+              style={{ left: mousePos.x + 15, top: mousePos.y + 15 }}
+            >
+              X:{mousePos.pctX.toFixed(1)}% Y:{mousePos.pctY.toFixed(1)}%
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

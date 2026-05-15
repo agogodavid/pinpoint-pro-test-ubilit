@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
-import type { DocumentSession, ApiResponse } from '@shared/types';
+import type { DocumentSession } from '@shared/types';
 export function HomePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -110,7 +110,6 @@ export function HomePage() {
                   </Button>
                   <Button onClick={() => navigate('/join')} variant="ghost" className="gap-2">Join Session</Button>
                 </div>
-                </Button>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -119,9 +118,9 @@ export function HomePage() {
                     <div className="aspect-video bg-muted relative overflow-hidden">
                        <img src={s.documentUrl} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" alt="" />
                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button 
-                            variant="destructive" 
-                            size="icon" 
+                          <Button
+                            variant="destructive"
+                            size="icon"
                             className="h-8 w-8"
                             onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(s.id); }}
                           >
@@ -137,9 +136,9 @@ export function HomePage() {
                           <span>{formatDistanceToNow(s.createdAt)} ago</span>
                         </div>
                       </div>
-                      <Button 
+                      <Button
                         onClick={() => navigate(`/review/${s.id}`)}
-                        variant="secondary" 
+                        variant="secondary"
                         className="w-full group-hover:bg-indigo-600 group-hover:text-white transition-colors h-9"
                       >
                         Open Review
