@@ -77,7 +77,9 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [];
+    const commands = [
+    "bun install react-zoom-pan-pinch"
+];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
