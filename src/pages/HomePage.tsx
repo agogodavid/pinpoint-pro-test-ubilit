@@ -53,7 +53,14 @@ export function HomePage() {
           <section className="text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs font-medium animate-fade-in">
               <Sparkles className="w-3 h-3" />
-              Guided Precision Document Feedback
+              Precision Feedback & Document Guided Tours
+            </div>
+            <div className="flex justify-center gap-2">
+               <Button variant="ghost" className="text-xs h-7 text-muted-foreground hover:text-indigo-500" onClick={() => navigate('/join')}>
+                 Have a code? Join Session
+               </Button>
+               <span className="text-zinc-300 dark:text-zinc-800 select-none">•</span>
+               <span className="text-xs text-muted-foreground flex items-center h-7 px-2">Codenamed Access Enabled</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight text-foreground">
               Feedback that <br />
@@ -96,9 +103,13 @@ export function HomePage() {
               <Card className="p-12 text-center border-dashed bg-transparent">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
                 <h3 className="text-lg font-medium">No reviews yet</h3>
-                <p className="text-sm text-muted-foreground mb-6">Upload your first document to get started.</p>
-                <Button onClick={handleQuickUpload} variant="outline" className="gap-2">
-                  <Plus className="w-4 h-4" /> Start Review
+                <p className="text-sm text-muted-foreground mb-6">Upload your first document or join an existing session with a code.</p>
+                <div className="flex items-center justify-center gap-4">
+                  <Button onClick={handleQuickUpload} variant="outline" className="gap-2">
+                    <Plus className="w-4 h-4" /> Start Review
+                  </Button>
+                  <Button onClick={() => navigate('/join')} variant="ghost" className="gap-2">Join Session</Button>
+                </div>
                 </Button>
               </Card>
             ) : (

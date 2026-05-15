@@ -9,6 +9,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const page = await DocumentSessionEntity.list(c.env);
     return ok(c, page);
   });
+  app.get('/api/sessions/by-codename/:codename', async (c) => {
+    const code = c.req.param('codename').toUpperCase();
+    const { items } = await DocumentSessionEntity.list(c.env);
+    const match = items.find(s => s.codename?.toUpperCase() === code);
+    if (!match) return notFound(c, 'Session not found');
+    return ok(c, match);
+  });
   app.get('/api/sessions/:id', async (c) => {
     const session = new DocumentSessionEntity(c.env, c.req.param('id'));
     if (!await session.exists()) return notFound(c, 'Session not found');

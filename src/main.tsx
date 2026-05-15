@@ -13,6 +13,7 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import { ReviewPage } from '@/pages/ReviewPage'
+import { JoinPage } from '@/pages/JoinPage'
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -23,6 +24,16 @@ const router = createBrowserRouter([
   {
     path: "/review/:id",
     element: <ReviewPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/join",
+    element: <JoinPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/join/:codename",
+    element: <JoinPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
