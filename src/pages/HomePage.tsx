@@ -71,7 +71,7 @@ export function HomePage() {
                <span className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center h-7 px-2 font-medium">Codenamed Access Enabled</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
-              Feedback that <br />
+              Updated locally <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient">
                 Actually Matters.
               </span>
