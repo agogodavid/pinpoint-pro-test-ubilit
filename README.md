@@ -1,6 +1,6 @@
 # Pinpoint Pro
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/agogodavid/pinpoint-pro-test-ubilit)
 
 Pinpoint Pro is a high-performance, real-time communication and state management platform built on Cloudflare's edge network. It leverages Durable Objects to provide globally distributed, consistent state for complex multi-user applications like chat boards, collaborative tools, and real-time dashboards.
 
@@ -66,7 +66,7 @@ The application will be available at `http://localhost:3000`. API requests to `/
 
 ## 🌐 Deployment
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/agogodavid/pinpoint-pro-test-ubilit)
 
 Deploying to Cloudflare is seamless. The project is configured to use Cloudflare Pages for the frontend assets and Workers for the API logic.
 
